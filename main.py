@@ -3,7 +3,8 @@ import networkx as nx
 from openpyxl import load_workbook
 import random
 from pathlib import Path
-
+# TODO work with limited amount of boards (board management) prio for current round later rounds
+# TODO some sort of html export with beautiful UI
 def load_tournament_data(filepath="tournament.xlsx"):
     """Load attendees and pairings from Excel file."""
     attendees = pd.read_excel(filepath, sheet_name="Attendees")
