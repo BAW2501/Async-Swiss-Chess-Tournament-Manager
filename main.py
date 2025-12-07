@@ -302,7 +302,7 @@ def generate_pairings(player_state):
     
     return pairings
 
-def append_pairings_to_excel(filepath, new_pairings):
+def append_pairings_to_excel(filepath, new_pairings, player_state):
     """Append new pairings to Excel file."""
     if not new_pairings:
         return
@@ -319,11 +319,16 @@ def append_pairings_to_excel(filepath, new_pairings):
     # Append new pairings
     for i, pairing in enumerate(new_pairings):
         board_num = max_board + i + 1
+        white_id = pairing["White Player"]
+        black_id = pairing["Black Player"]
+        
         ws.append([
             pairing["Round"],
             board_num,
-            pairing["White Player"],
-            pairing["Black Player"],
+            white_id,
+            player_state[white_id]["name"],  # White Name
+            black_id,
+            player_state[black_id]["name"],  # Black Name
             None,  # Results White
             None   # Results Black
         ])
@@ -405,7 +410,7 @@ def main():
     
     # Write to Excel
     if new_pairings:
-        append_pairings_to_excel(filepath, new_pairings)
+        append_pairings_to_excel(filepath, new_pairings, player_state)
     
     # Calculate and write standings
     standings = calculate_standings(player_state)
