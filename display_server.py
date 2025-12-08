@@ -41,31 +41,31 @@ HTML_TEMPLATE = """
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #D4A574 0%, #8B6F47 50%, #D4A574 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
             color: #2c1810;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
             background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
+            padding: 20px;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             border: 3px solid #5d4e37;
         }
 
         .logo-container {
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         .logo-container img {
-            max-width: 600px;
+            max-width: 500px;
             width: 100%;
             height: auto;
             border-radius: 15px;
@@ -73,7 +73,7 @@ HTML_TEMPLATE = """
         }
 
         h1 {
-            font-size: 3em;
+            font-size: 2.5em;
             color: #5d4e37;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 10px;
@@ -84,15 +84,15 @@ HTML_TEMPLATE = """
         }
 
         .subtitle {
-            font-size: 1.3em;
+            font-size: 1.2em;
             color: #8B6F47;
             font-weight: 600;
             margin-top: 10px;
         }
 
         .last-update {
-            margin-top: 15px;
-            font-size: 0.95em;
+            margin-top: 12px;
+            font-size: 0.9em;
             color: #666;
             display: flex;
             align-items: center;
@@ -100,17 +100,59 @@ HTML_TEMPLATE = """
             gap: 8px;
         }
 
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .tab-button {
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px solid #5d4e37;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #5d4e37;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #5d4e37, #8B6F47);
+            color: white;
+            border-color: #8B6F47;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         .section {
             background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            margin-bottom: 30px;
+            padding: 25px;
             border-radius: 15px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
             border: 2px solid #5d4e37;
         }
 
         .section-title {
-            font-size: 2em;
+            font-size: 1.8em;
             color: #5d4e37;
             margin-bottom: 20px;
             display: flex;
@@ -135,22 +177,22 @@ HTML_TEMPLATE = """
         }
 
         th {
-            padding: 18px 15px;
+            padding: 12px 10px;
             text-align: left;
             font-weight: 700;
-            font-size: 1.05em;
+            font-size: 0.95em;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
         th i {
-            margin-right: 8px;
+            margin-right: 6px;
         }
 
         td {
-            padding: 15px;
+            padding: 10px;
             border-bottom: 1px solid #e0e0e0;
-            font-size: 1.05em;
+            font-size: 0.95em;
         }
 
         tr:hover {
@@ -165,7 +207,7 @@ HTML_TEMPLATE = """
         .rank {
             font-weight: bold;
             color: #5d4e37;
-            font-size: 1.2em;
+            font-size: 1.1em;
         }
 
         .rank-1 {
@@ -186,18 +228,19 @@ HTML_TEMPLATE = """
         .points {
             font-weight: bold;
             color: #2c5f2d;
-            font-size: 1.15em;
+            font-size: 1.1em;
         }
 
         .board-number {
             background: linear-gradient(135deg, #5d4e37, #8B6F47);
             color: white;
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 8px;
             font-weight: bold;
             display: inline-block;
-            min-width: 60px;
+            min-width: 50px;
             text-align: center;
+            font-size: 0.9em;
         }
 
         .player-cell {
@@ -209,26 +252,27 @@ HTML_TEMPLATE = """
             text-align: center;
             color: #8B6F47;
             font-weight: bold;
-            font-size: 1.2em;
+            font-size: 1.1em;
         }
 
         .round-badge {
             background: #D4A574;
             color: #2c1810;
-            padding: 5px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.9em;
+            font-size: 0.85em;
             font-weight: bold;
             display: inline-block;
         }
 
         .result {
             font-weight: bold;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 5px;
             display: inline-block;
-            min-width: 50px;
+            min-width: 45px;
             text-align: center;
+            font-size: 0.9em;
         }
 
         .result-win {
@@ -253,8 +297,8 @@ HTML_TEMPLATE = """
 
         .footer {
             text-align: center;
-            margin-top: 40px;
-            padding: 20px;
+            margin-top: 30px;
+            padding: 15px;
             background: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
             border: 2px solid #5d4e37;
@@ -264,7 +308,7 @@ HTML_TEMPLATE = """
             color: #5d4e37;
             text-decoration: none;
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: 1.05em;
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -306,19 +350,24 @@ HTML_TEMPLATE = """
 
         @media (max-width: 768px) {
             h1 {
-                font-size: 2em;
+                font-size: 1.8em;
             }
 
             .section {
-                padding: 20px;
+                padding: 15px;
             }
 
             table {
-                font-size: 0.9em;
+                font-size: 0.85em;
             }
 
             th, td {
-                padding: 10px 8px;
+                padding: 8px 6px;
+            }
+
+            .tab-button {
+                padding: 12px 25px;
+                font-size: 1.1em;
             }
         }
     </style>
@@ -348,107 +397,123 @@ HTML_TEMPLATE = """
             {% endif %}
         </div>
 
-        <!-- STANDINGS SECTION -->
-        <div class="section">
-            <h2 class="section-title">
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('standings')">
                 <i class="fas fa-ranking-star"></i>
-                Current Standings
-            </h2>
-            {% if standings %}
-            <table>
-                <thead>
-                    <tr>
-                        <th><i class="fas fa-hashtag"></i> Rank</th>
-                        <th><i class="fas fa-user"></i> Player</th>
-                        <th><i class="fas fa-star"></i> Points</th>
-                        <th><i class="fas fa-chart-line"></i> Buchholz</th>
-                        <th><i class="fas fa-handshake"></i> Direct</th>
-                        <th><i class="fas fa-calculator"></i> Berger</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for player in standings %}
-                    <tr>
-                        <td class="rank {% if player.Pos == 1 %}rank-1{% elif player.Pos == 2 %}rank-2{% elif player.Pos == 3 %}rank-3{% endif %}">
-                            {% if player.Pos == 1 %}
-                                <i class="fas fa-crown"></i>
-                            {% elif player.Pos == 2 %}
-                                <i class="fas fa-medal"></i>
-                            {% elif player.Pos == 3 %}
-                                <i class="fas fa-award"></i>
-                            {% endif %}
-                            {{ player.Pos }}
-                        </td>
-                        <td class="player-cell">{{ player['Player Name'] }}</td>
-                        <td class="points">{{ player.Pt }}</td>
-                        <td>{{ player.BucT }}</td>
-                        <td>{{ player.DE }}</td>
-                        <td>{{ player.Ber }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-hourglass-start"></i>
-                <p>Standings will appear here once games are completed</p>
-            </div>
-            {% endif %}
+                Standings
+            </button>
+            <button class="tab-button" onclick="showTab('pairings')">
+                <i class="fas fa-chess-board"></i>
+                Pairings
+            </button>
         </div>
 
-        <!-- PAIRINGS SECTION -->
-        <div class="section">
-            <h2 class="section-title">
-                <i class="fas fa-chess-board"></i>
-                Current Pairings
-            </h2>
-            {% if pairings %}
-            <table>
-                <thead>
-                    <tr>
-                        <th><i class="fas fa-layer-group"></i> Round</th>
-                        <th><i class="fas fa-chess-board"></i> Board</th>
-                        <th><i class="fas fa-chess-king"></i> White Player</th>
-                        <th></th>
-                        <th><i class="fas fa-chess-queen"></i> Black Player</th>
-                        <th><i class="fas fa-trophy"></i> Result</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pairing in pairings %}
-                    <tr>
-                        <td><span class="round-badge">R{{ pairing.Round }}</span></td>
-                        <td><span class="board-number">{{ pairing.Board }}</span></td>
-                        <td class="player-cell">
-                            <i class="fas fa-square" style="color: white; text-shadow: 0 0 1px black;"></i>
-                            {{ pairing['White Name'] }}
-                        </td>
-                        <td class="vs-separator">VS</td>
-                        <td class="player-cell">
-                            <i class="fas fa-square" style="color: black;"></i>
-                            {{ pairing['Black Name'] }}
-                        </td>
-                        <td>
-                            {% if pairing.result_status == 'White Win' %}
-                                <span class="result result-win">1-0</span>
-                            {% elif pairing.result_status == 'Black Win' %}
-                                <span class="result result-loss">0-1</span>
-                            {% elif pairing.result_status == 'Draw' %}
-                                <span class="result result-draw">½-½</span>
-                            {% else %}
-                                <span class="result result-pending"><i class="fas fa-hourglass-half"></i> In Progress</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-chess-knight"></i>
-                <p>No pairings yet. Run the pairing script to generate matches!</p>
+        <!-- STANDINGS TAB -->
+        <div id="standings-tab" class="tab-content active">
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-ranking-star"></i>
+                    Current Standings
+                </h2>
+                {% if standings %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> Rank</th>
+                            <th><i class="fas fa-user"></i> Player</th>
+                            <th><i class="fas fa-star"></i> Points</th>
+                            <th><i class="fas fa-chart-line"></i> Buchholz</th>
+                            <th><i class="fas fa-handshake"></i> Direct</th>
+                            <th><i class="fas fa-calculator"></i> Berger</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for player in standings %}
+                        <tr>
+                            <td class="rank {% if player.Pos == 1 %}rank-1{% elif player.Pos == 2 %}rank-2{% elif player.Pos == 3 %}rank-3{% endif %}">
+                                {% if player.Pos == 1 %}
+                                    <i class="fas fa-crown"></i>
+                                {% elif player.Pos == 2 %}
+                                    <i class="fas fa-medal"></i>
+                                {% elif player.Pos == 3 %}
+                                    <i class="fas fa-award"></i>
+                                {% endif %}
+                                {{ player.Pos }}
+                            </td>
+                            <td class="player-cell">{{ player['Player Name'] }}</td>
+                            <td class="points">{{ player.Pt }}</td>
+                            <td>{{ player.BucT }}</td>
+                            <td>{{ player.DE }}</td>
+                            <td>{{ player.Ber }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-hourglass-start"></i>
+                    <p>Standings will appear here once games are completed</p>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
+        </div>
+
+        <!-- PAIRINGS TAB -->
+        <div id="pairings-tab" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-chess-board"></i>
+                    Current Pairings
+                </h2>
+                {% if pairings %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-layer-group"></i> Round</th>
+                            <th><i class="fas fa-chess-board"></i> Board</th>
+                            <th><i class="fas fa-chess-king"></i> White Player</th>
+                            <th></th>
+                            <th><i class="fas fa-chess-queen"></i> Black Player</th>
+                            <th><i class="fas fa-trophy"></i> Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pairing in pairings %}
+                        <tr>
+                            <td><span class="round-badge">R{{ pairing.Round }}</span></td>
+                            <td><span class="board-number">{{ pairing.Board }}</span></td>
+                            <td class="player-cell">
+                                <i class="fas fa-square" style="color: white; text-shadow: 0 0 1px black;"></i>
+                                {{ pairing['White Name'] }}
+                            </td>
+                            <td class="vs-separator">VS</td>
+                            <td class="player-cell">
+                                <i class="fas fa-square" style="color: black;"></i>
+                                {{ pairing['Black Name'] }}
+                            </td>
+                            <td>
+                                {% if pairing.result_status == 'White Win' %}
+                                    <span class="result result-win">1-0</span>
+                                {% elif pairing.result_status == 'Black Win' %}
+                                    <span class="result result-loss">0-1</span>
+                                {% elif pairing.result_status == 'Draw' %}
+                                    <span class="result result-draw">½-½</span>
+                                {% else %}
+                                    <span class="result result-pending"><i class="fas fa-hourglass-half"></i> Live</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-chess-knight"></i>
+                    <p>No pairings yet. Run the pairing script to generate matches!</p>
+                </div>
+                {% endif %}
+            </div>
         </div>
 
         <div class="footer">
@@ -464,10 +529,29 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
-        // Auto-refresh every 5 seconds
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Activate button
+            event.target.closest('.tab-button').classList.add('active');
+        }
+
+        // Auto-refresh every 10 seconds
         setTimeout(function() {
             location.reload();
-        }, 5000);
+        }, 10000);
     </script>
 </body>
 </html>
@@ -482,11 +566,12 @@ class ExcelFileHandler(FileSystemEventHandler):
         
     def on_modified(self, event):
         if event.src_path.endswith('tournament.xlsx'):
-            # Debounce: only reload if at least 1 second has passed
+            # Debounce: only reload if at least 2 seconds have passed
             current_time = time.time()
-            if current_time - self.last_modified > 1:
+            if current_time - self.last_modified > 2:
                 self.last_modified = current_time
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] Excel file changed - reloading data...")
+                time.sleep(0.5)  # Give Excel time to finish writing
                 load_tournament_data()
 
 def load_tournament_data():
@@ -496,7 +581,7 @@ def load_tournament_data():
         
         # Load standings
         try:
-            standings_df = pd.read_excel(filepath, sheet_name="Standings")
+            standings_df = pd.read_excel(filepath, sheet_name="Standings", engine='openpyxl')
             tournament_data['standings'] = standings_df.to_dict('records')
         except Exception as e:
             print(f"Could not load standings: {e}")
@@ -504,7 +589,7 @@ def load_tournament_data():
         
         # Load pairings
         try:
-            pairings_df = pd.read_excel(filepath, sheet_name="Pairings")
+            pairings_df = pd.read_excel(filepath, sheet_name="Pairings", engine='openpyxl')
             
             # Add result status
             pairings_list = []
@@ -595,12 +680,13 @@ def main():
     print()
     print("=" * 70)
     print()
-    print("💡 The display will auto-refresh when tournament.xlsx is updated")
+    print("💡 The display will auto-refresh every 10 seconds")
+    print("📂 File watcher detects changes to tournament.xlsx")
     print("⚠️  Press CTRL+C to stop the server")
     print()
     
     try:
-        app.run(host='0.0.0.0', port=5000, debug=False)
+        app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
     except KeyboardInterrupt:
         print("\n\n🛑 Stopping server...")
         observer.stop()
