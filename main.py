@@ -3,8 +3,10 @@ import networkx as nx
 from openpyxl import load_workbook
 import random
 from pathlib import Path
-# TODO work with limited amount of boards (board management) prio for current round later rounds
-# TODO some sort of html export with beautiful UI
+
+# Board management configuration
+MAX_BOARDS = 17
+
 def load_tournament_data(filepath="tournament.xlsx"):
     """Load attendees and pairings from Excel file."""
     attendees = pd.read_excel(filepath, sheet_name="Attendees")
@@ -12,6 +14,13 @@ def load_tournament_data(filepath="tournament.xlsx"):
         pairings = pd.read_excel(filepath, sheet_name="Pairings")
         if pairings.empty:
             pairings = pd.DataFrame(columns=["Round", "Board", "White Player", "Black Player", "Results White", "Results Black"])
+        else:
+            # Debug: Print column names to help diagnose issues
+            print(f"\nPairings sheet columns: {list(pairings.columns)}")
+            print(f"Total pairings found: {len(pairings)}")
+            
+            # Strip whitespace from column names
+            pairings.columns = pairings.columns.str.strip()
     except:
         pairings = pd.DataFrame(columns=["Round", "Board", "White Player", "Black Player", "Results White", "Results Black"])
     
@@ -33,8 +42,12 @@ def build_player_state(attendees, pairings):
             "currently_playing": False
         }
     
+    # Debug counters
+    finished_games = 0
+    ongoing_games = 0
+    
     # Process pairings
-    for _, pairing in pairings.iterrows():
+    for idx, pairing in pairings.iterrows():
         white_id = pairing["White Player"]
         black_id = pairing["Black Player"]
         result_white = pairing["Results White"]
@@ -42,6 +55,11 @@ def build_player_state(attendees, pairings):
         
         # Check if game is finished
         game_finished = pd.notna(result_white) and pd.notna(result_black)
+        
+        if game_finished:
+            finished_games += 1
+        else:
+            ongoing_games += 1
         
         if white_id in player_state and black_id in player_state:
             # Mark opponents
@@ -69,7 +87,67 @@ def build_player_state(attendees, pairings):
                 player_state[white_id]["currently_playing"] = True
                 player_state[black_id]["currently_playing"] = True
     
+    print(f"Games status: {finished_games} finished, {ongoing_games} ongoing")
+    
     return player_state
+
+def get_active_boards(pairings):
+    """Get list of boards currently in use (games without results)."""
+    active_boards = []
+    
+    for _, pairing in pairings.iterrows():
+        result_white = pairing["Results White"]
+        result_black = pairing["Results Black"]
+        game_finished = pd.notna(result_white) and pd.notna(result_black)
+        
+        if not game_finished:
+            board_num = pairing["Board"]
+            round_num = pairing["Round"]
+            active_boards.append({
+                "board": board_num,
+                "round": round_num
+            })
+    
+    return active_boards
+
+def assign_board_numbers(new_pairings, existing_pairings):
+    """Assign board numbers with priority for older rounds."""
+    if not new_pairings:
+        return []
+    
+    # Get active boards
+    active_boards = get_active_boards(existing_pairings)
+    
+    # Sort active boards by round (older rounds first), then by board number
+    active_boards.sort(key=lambda x: (x["round"], x["board"]))
+    
+    print(f"\nBoard Assignment:")
+    print(f"  Active boards in use: {len(active_boards)}/{MAX_BOARDS}")
+    
+    # Determine available boards
+    used_board_numbers = {ab["board"] for ab in active_boards}
+    available_boards = [b for b in range(1, MAX_BOARDS + 1) if b not in used_board_numbers]
+    
+    # Sort new pairings by round (older rounds get priority)
+    sorted_pairings = sorted(new_pairings, key=lambda x: x["Round"])
+    
+    # Assign board numbers
+    board_assigned_pairings = []
+    
+    for pairing in sorted_pairings:
+        if available_boards:
+            # Assign next available board
+            board_num = available_boards.pop(0)
+            pairing["Board"] = board_num
+            print(f"  Round {pairing['Round']}: Assigned Board {board_num}")
+        else:
+            # All boards in use, show "?" to indicate waiting
+            pairing["Board"] = "?"
+            print(f"  Round {pairing['Round']}: Board ? (waiting for board to free)")
+        
+        board_assigned_pairings.append(pairing)
+    
+    return board_assigned_pairings
 
 def get_waiting_players(player_state):
     """Get list of players ready for a new pairing."""
@@ -304,28 +382,21 @@ def generate_pairings(player_state):
     return pairings
 
 def append_pairings_to_excel(filepath, new_pairings, player_state):
-    """Append new pairings to Excel file."""
+    """Append new pairings to Excel file with board assignments."""
     if not new_pairings:
         return
     
     wb = load_workbook(filepath)
     ws = wb["Pairings"]
     
-    # Find next board number
-    max_board = 0
-    for row in ws.iter_rows(min_row=2, max_col=2, values_only=True):
-        if row[1] is not None:
-            max_board = max(max_board, row[1])
-    
-    # Append new pairings
-    for i, pairing in enumerate(new_pairings):
-        board_num = max_board + i + 1
+    # Append new pairings with assigned boards
+    for pairing in new_pairings:
         white_id = pairing["White Player"]
         black_id = pairing["Black Player"]
         
         ws.append([
             pairing["Round"],
-            board_num,
+            pairing["Board"],
             white_id,
             player_state[white_id]["name"],  # White Name
             black_id,
@@ -397,6 +468,7 @@ def main():
     
     print("=" * 60)
     print("Swiss Tournament Pairing System")
+    print(f"Board Management: {MAX_BOARDS} boards available")
     print("=" * 60)
     
     # Load data
@@ -409,8 +481,9 @@ def main():
     # Generate new pairings
     new_pairings = generate_pairings(player_state)
     
-    # Write to Excel
+    # Assign board numbers based on availability and round priority
     if new_pairings:
+        new_pairings = assign_board_numbers(new_pairings, pairings)
         append_pairings_to_excel(filepath, new_pairings, player_state)
     
     # Calculate and write standings
