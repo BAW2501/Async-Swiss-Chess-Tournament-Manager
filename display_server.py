@@ -22,7 +22,7 @@ tournament_data = {
     'last_update': None
 }
 
-# Shared CSS styles
+# Shared CSS styles - OPTIMIZED FOR TV / HIGH DENSITY DISPLAY
 SHARED_STYLES = """
     * {
         margin: 0;
@@ -34,92 +34,101 @@ SHARED_STYLES = """
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: linear-gradient(135deg, #D4A574 0%, #8B6F47 50%, #D4A574 100%);
         min-height: 100vh;
-        padding: 15px;
+        padding: 5px; /* Reduced body padding */
         color: #2c1810;
+        overflow: hidden; /* Prevent double scrollbars on TV */
     }
 
     .container {
-        max-width: 1600px;
+        max-width: 99vw; /* Full width for TV */
         margin: 0 auto;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
 
+    /* COMPACT HEADER */
     .header {
         text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 10px;
         background: rgba(255, 255, 255, 0.95);
-        padding: 20px;
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        border: 3px solid #5d4e37;
+        padding: 8px 15px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        border: 2px solid #5d4e37;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-grow: 1;
+        justify-content: center;
     }
 
     .logo-container {
-        margin: 15px 0;
+        margin: 0;
     }
 
     .logo-container img {
-        max-width: 500px;
-        width: 100%;
-        height: auto;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        height: 50px; /* Force small logo */
+        width: auto;
+        border-radius: 5px;
     }
 
     h1 {
-        font-size: 2.5em;
+        font-size: 1.6em; /* Smaller font */
         color: #5d4e37;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        margin-bottom: 10px;
+        margin: 0;
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 15px;
+        gap: 10px;
     }
 
     .subtitle {
-        font-size: 1.2em;
+        font-size: 1em;
         color: #8B6F47;
         font-weight: 600;
-        margin-top: 10px;
+        margin-left: 15px;
+        display: inline-block;
     }
 
     .last-update {
-        margin-top: 12px;
-        font-size: 0.9em;
+        font-size: 0.85em;
         color: #666;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
+        margin-left: auto;
     }
 
+    /* COMPACT NAV */
     .nav-buttons {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         justify-content: center;
-        margin-bottom: 25px;
-        flex-wrap: wrap;
+        margin-bottom: 10px;
+        flex-shrink: 0;
     }
 
     .nav-button {
         background: rgba(255, 255, 255, 0.9);
-        border: 3px solid #5d4e37;
-        padding: 15px 40px;
-        font-size: 1.3em;
+        border: 2px solid #5d4e37;
+        padding: 6px 20px; /* Smaller padding */
+        font-size: 1.1em;
         font-weight: bold;
         color: #5d4e37;
         text-decoration: none;
-        border-radius: 15px;
+        border-radius: 8px;
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
-        gap: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        gap: 8px;
     }
 
     .nav-button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px);
     }
 
     .nav-button.active {
@@ -130,62 +139,57 @@ SHARED_STYLES = """
 
     .filter-container {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         justify-content: center;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
+        margin-bottom: 8px;
+        flex-shrink: 0;
     }
 
     .filter-button {
         background: rgba(255, 255, 255, 0.9);
-        border: 2px solid #5d4e37;
-        padding: 10px 25px;
-        font-size: 1em;
+        border: 1px solid #5d4e37;
+        padding: 4px 15px;
+        font-size: 0.9em;
         font-weight: 600;
         color: #5d4e37;
         cursor: pointer;
-        border-radius: 10px;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .filter-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        border-radius: 6px;
     }
 
     .filter-button.active {
         background: linear-gradient(135deg, #D4A574, #8B6F47);
         color: white;
-        border-color: #8B6F47;
     }
 
     .section {
         background: rgba(255, 255, 255, 0.95);
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         border: 2px solid #5d4e37;
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* Take remaining height */
+        overflow: hidden;
     }
 
     .section-title {
-        font-size: 1.8em;
+        font-size: 1.3em;
         color: #5d4e37;
-        margin-bottom: 20px;
+        margin-bottom: 8px;
         display: flex;
         align-items: center;
-        gap: 12px;
-        border-bottom: 3px solid #D4A574;
-        padding-bottom: 10px;
+        gap: 8px;
+        border-bottom: 2px solid #D4A574;
+        padding-bottom: 4px;
+        flex-shrink: 0;
     }
 
+    /* OPTIMIZED TABLE FOR MORE ROWS */
     .table-container {
-        max-height: 70vh;
+        flex-grow: 1;
         overflow-y: auto;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
     }
 
     table {
@@ -203,91 +207,58 @@ SHARED_STYLES = """
     }
 
     th {
-        padding: 12px 10px;
+        padding: 6px 8px; /* Compact headers */
         text-align: left;
         font-weight: 700;
-        font-size: 0.95em;
-        letter-spacing: 0.5px;
+        font-size: 0.9em;
         text-transform: uppercase;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    th i {
-        margin-right: 6px;
-    }
+    th i { margin-right: 4px; }
 
     td {
-        padding: 10px;
+        padding: 4px 8px; /* VERY COMPACT ROWS */
         border-bottom: 1px solid #e0e0e0;
-        font-size: 0.95em;
+        font-size: 1em; /* Keep readable */
+        line-height: 1.2;
     }
 
-    tbody tr:hover {
-        background-color: #fff9f0;
-        transition: all 0.3s ease;
-    }
+    tbody tr:hover { background-color: #fff9f0; }
 
-    tbody tr:last-child td {
-        border-bottom: none;
-    }
+    .rank { font-weight: bold; color: #5d4e37; }
+    .rank-1 { color: #FFD700; }
+    .rank-2 { color: #C0C0C0; }
+    .rank-3 { color: #CD7F32; }
 
-    .rank {
-        font-weight: bold;
-        color: #5d4e37;
-        font-size: 1.1em;
-    }
-
-    .rank-1 { color: #FFD700; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); }
-    .rank-2 { color: #C0C0C0; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); }
-    .rank-3 { color: #CD7F32; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); }
-
-    .points {
-        font-weight: bold;
-        color: #2c5f2d;
-        font-size: 1.1em;
-    }
+    .points { font-weight: bold; color: #2c5f2d; }
 
     .board-number {
         background: linear-gradient(135deg, #5d4e37, #8B6F47);
         color: white;
-        padding: 6px 12px;
-        border-radius: 8px;
+        padding: 2px 8px;
+        border-radius: 4px;
         font-weight: bold;
         display: inline-block;
-        min-width: 50px;
+        min-width: 40px;
         text-align: center;
         font-size: 0.9em;
     }
 
-    .player-cell {
-        font-weight: 600;
-        color: #2c1810;
-    }
-
-    .vs-separator {
-        text-align: center;
-        color: #8B6F47;
-        font-weight: bold;
-        font-size: 1.1em;
-    }
+    .player-cell { font-weight: 600; color: #2c1810; }
 
     .round-badge {
         background: #D4A574;
         color: #2c1810;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.85em;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 0.8em;
         font-weight: bold;
-        display: inline-block;
     }
 
     .result {
         font-weight: bold;
-        padding: 4px 8px;
-        border-radius: 5px;
-        display: inline-block;
-        min-width: 45px;
-        text-align: center;
+        padding: 2px 6px;
+        border-radius: 4px;
         font-size: 0.9em;
     }
 
@@ -296,43 +267,13 @@ SHARED_STYLES = """
     .result-loss { background: #f8d7da; color: #721c24; }
     .result-pending { background: #e2e3e5; color: #383d41; }
 
+    /* Hide footer on TV to save space */
     .footer {
-        text-align: center;
-        margin-top: 30px;
-        padding: 15px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 15px;
-        border: 2px solid #5d4e37;
+        display: none; 
     }
 
-    .footer a {
-        color: #5d4e37;
-        text-decoration: none;
-        font-weight: bold;
-        font-size: 1.05em;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-    }
-
-    .footer a:hover {
-        color: #D4A574;
-        transform: translateY(-2px);
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 40px;
-        color: #666;
-        font-size: 1.2em;
-    }
-
-    .empty-state i {
-        font-size: 3em;
-        color: #D4A574;
-        margin-bottom: 15px;
-    }
+    .empty-state { text-align: center; padding: 20px; color: #666; }
+    .empty-state i { font-size: 2em; color: #D4A574; margin-bottom: 10px; }
 
     @keyframes pulse {
         0%, 100% { opacity: 1; }
@@ -341,53 +282,43 @@ SHARED_STYLES = """
 
     .live-indicator {
         display: inline-block;
-        width: 12px;
-        height: 12px;
+        width: 10px;
+        height: 10px;
         background: #ff4444;
         border-radius: 50%;
         animation: pulse 2s infinite;
-        margin-right: 8px;
+        margin-right: 5px;
     }
 
     .pairing-row { display: table-row; }
     .pairing-row.hidden { display: none; }
-
-    @media (max-width: 768px) {
-        h1 { font-size: 1.8em; }
-        .section { padding: 15px; }
-        table { font-size: 0.85em; }
-        th, td { padding: 8px 6px; }
-        .nav-button { padding: 12px 25px; font-size: 1.1em; }
-        .filter-button { padding: 8px 15px; font-size: 0.9em; }
-    }
 """
 
 # Shared header component
 def render_header(last_update):
     return f"""
     <div class="header">
-        <h1>
-            <i class="fas fa-chess"></i>
-            Amateur Chess Tournament
-            <i class="fas fa-trophy"></i>
-        </h1>
-        <div class="subtitle">
-            <span class="live-indicator"></span>
-            LIVE STANDINGS & PAIRINGS
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="/static/tournament_poster.jpg" alt="Logo" onerror="this.style.display='none'">
+            </div>
+            <h1>
+                <i class="fas fa-chess"></i>
+                Amateur Chess Tournament
+            </h1>
+            <div class="subtitle">
+                <span class="live-indicator"></span>
+                LIVE
+            </div>
         </div>
-        
-        <div class="logo-container">
-            <img src="/static/tournament_poster.jpg" alt="Tournament Poster" onerror="this.style.display='none'">
-        </div>
-        
-        {'<div class="last-update"><i class="far fa-clock"></i>Last Updated: ' + last_update + '</div>' if last_update else ''}
+        {'<div class="last-update"><i class="far fa-clock"></i> ' + last_update + '</div>' if last_update else ''}
     </div>
     """
 
 # Navigation component
 def render_nav(active_page):
     pages = [
-        ('/', 'combined', 'fas fa-columns', 'Combined View'),
+        ('/', 'combined', 'fas fa-columns', 'Combined'),
         ('/standings', 'standings', 'fas fa-ranking-star', 'Standings'),
         ('/pairings', 'pairings', 'fas fa-chess-board', 'Pairings')
     ]
@@ -402,15 +333,15 @@ def render_nav(active_page):
 # Standings table component
 def render_standings_table(standings):
     if not standings:
-        return '<div class="empty-state"><i class="fas fa-hourglass-start"></i><p>Standings will appear here once games are completed</p></div>'
+        return '<div class="empty-state"><i class="fas fa-hourglass-start"></i><p>Waiting for standings...</p></div>'
     
     html = '<div class="table-container"><table><thead><tr>'
-    html += '<th><i class="fas fa-hashtag"></i> Rank</th>'
-    html += '<th><i class="fas fa-user"></i> Player</th>'
-    html += '<th><i class="fas fa-star"></i> Points</th>'
-    html += '<th><i class="fas fa-chart-line"></i> Buchholz</th>'
-    html += '<th><i class="fas fa-handshake"></i> Direct</th>'
-    html += '<th><i class="fas fa-calculator"></i> Berger</th>'
+    html += '<th>Rank</th>'
+    html += '<th>Player</th>'
+    html += '<th>Pts</th>'
+    html += '<th>BucT</th>'
+    html += '<th>DE</th>'
+    html += '<th>Ber</th>'
     html += '</tr></thead><tbody>'
     
     for player in standings:
@@ -439,43 +370,37 @@ def render_standings_table(standings):
 # Pairings table component
 def render_pairings_table(pairings, show_filter=True):
     if not pairings:
-        return '<div class="empty-state"><i class="fas fa-chess-knight"></i><p>No pairings yet. Run the pairing script to generate matches!</p></div>'
+        return '<div class="empty-state"><i class="fas fa-chess-knight"></i><p>Waiting for pairings...</p></div>'
     
     html = ''
     if show_filter:
         html += """
         <div class="filter-container">
-            <button class="filter-button active" onclick="filterPairings('all')">
-                <i class="fas fa-list"></i> All Games
-            </button>
-            <button class="filter-button" onclick="filterPairings('pending')">
-                <i class="fas fa-hourglass-half"></i> Live Games
-            </button>
-            <button class="filter-button" onclick="filterPairings('finished')">
-                <i class="fas fa-check-circle"></i> Finished Games
-            </button>
+            <button class="filter-button active" onclick="filterPairings('all')">All</button>
+            <button class="filter-button" onclick="filterPairings('pending')">Live</button>
+            <button class="filter-button" onclick="filterPairings('finished')">Done</button>
         </div>
         """
     
     html += '<div class="table-container"><table><thead><tr>'
-    html += '<th><i class="fas fa-layer-group"></i> Round</th>'
-    html += '<th><i class="fas fa-chess-board"></i> Board</th>'
-    html += '<th><i class="fas fa-chess-king"></i> White Player</th>'
+    html += '<th>Round</th>'
+    html += '<th>Board</th>'
+    html += '<th>White</th>'
     html += '<th></th>'
-    html += '<th><i class="fas fa-chess-queen"></i> Black Player</th>'
-    html += '<th><i class="fas fa-trophy"></i> Result</th>'
+    html += '<th>Black</th>'
+    html += '<th>Result</th>'
     html += '</tr></thead><tbody id="pairings-tbody">'
     
     for pairing in pairings:
         status = pairing['result_status']
         html += f'<tr class="pairing-row" data-status="{status}">'
-        html += f'<td><span class="round-badge">R{pairing["Round"]}</span></td>'
+        html += f'<td><span class="round-badge">{pairing["Round"]}</span></td>'
         html += f'<td><span class="board-number">{pairing["Board"]}</span></td>'
-        html += f'<td class="player-cell"><i class="fas fa-square" style="color: white; text-shadow: 0 0 1px black;"></i> {pairing["White Name"]}</td>'
-        html += '<td class="vs-separator">VS</td>'
-        html += f'<td class="player-cell"><i class="fas fa-square" style="color: black;"></i> {pairing["Black Name"]}</td>'
+        html += f'<td class="player-cell">{pairing["White Name"]}</td>'
+        html += '<td class="vs-separator" style="font-size:0.8em; color:#ccc;">vs</td>'
+        html += f'<td class="player-cell">{pairing["Black Name"]}</td>'
         
-        result_html = '<span class="result result-pending"><i class="fas fa-hourglass-half"></i> Live</span>'
+        result_html = '<span class="result result-pending">Live</span>'
         if status == 'White Win':
             result_html = '<span class="result result-win">1-0</span>'
         elif status == 'Black Win':
@@ -488,18 +413,11 @@ def render_pairings_table(pairings, show_filter=True):
     html += '</tbody></table></div>'
     return html
 
-# Footer component
+# Footer component (Hidden via CSS, but function kept for structure)
 def render_footer():
     return """
     <div class="footer">
-        <p>
-            <i class="fas fa-code"></i>
-            Built with ♟️ by 
-            <a href="https://github.com/BAW2501" target="_blank">
-                <i class="fab fa-github"></i>
-                BAW2501
-            </a>
-        </p>
+        <p>Built by BAW2501</p>
     </div>
     """
 
@@ -534,14 +452,17 @@ COMBINED_PAGE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏆 Chess Tournament - Combined View</title>
+    <title>Tournament Display</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         {{ styles }}
         .split-view {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 10px;
+            flex-grow: 1;
+            overflow: hidden;
+            padding-bottom: 5px;
         }
         @media (max-width: 1200px) {
             .split-view {
@@ -556,11 +477,11 @@ COMBINED_PAGE = """
         {{ nav }}
         <div class="split-view">
             <div class="section">
-                <h2 class="section-title"><i class="fas fa-ranking-star"></i> Current Standings</h2>
+                <h2 class="section-title"><i class="fas fa-ranking-star"></i> Standings</h2>
                 {{ standings_table }}
             </div>
             <div class="section">
-                <h2 class="section-title"><i class="fas fa-chess-board"></i> Current Pairings</h2>
+                <h2 class="section-title"><i class="fas fa-chess-board"></i> Pairings</h2>
                 {{ pairings_table }}
             </div>
         </div>
@@ -580,15 +501,26 @@ SINGLE_PAGE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>{{ styles }}</style>
+    <style>
+        {{ styles }}
+        .single-view-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         {{ header }}
         {{ nav }}
-        <div class="section">
-            <h2 class="section-title">{{ section_title }}</h2>
-            {{ content }}
+        <div class="single-view-container">
+            <div class="section">
+                <h2 class="section-title">{{ section_title }}</h2>
+                {{ content }}
+            </div>
         </div>
         {{ footer }}
     </div>
@@ -646,7 +578,7 @@ def load_tournament_data():
             print(f"Could not load pairings: {e}")
             tournament_data['pairings'] = []
         
-        tournament_data['last_update'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        tournament_data['last_update'] = datetime.now().strftime('%H:%M')
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Data loaded: {len(tournament_data['standings'])} standings, {len(tournament_data['pairings'])} pairings")
     except Exception as e:
         print(f"Error loading tournament data: {e}")
@@ -668,11 +600,11 @@ def combined_view():
 def standings_view():
     return render_template_string(
         SINGLE_PAGE,
-        title='🏆 Chess Tournament - Standings',
+        title='Standings',
         styles=Markup(SHARED_STYLES),
         header=Markup(render_header(tournament_data['last_update'])),
         nav=Markup(render_nav('standings')),
-        section_title=Markup('<i class="fas fa-ranking-star"></i> Current Standings'),
+        section_title=Markup('<i class="fas fa-ranking-star"></i> Standings'),
         content=Markup(render_standings_table(tournament_data['standings'])),
         footer=Markup(render_footer()),
         extra_script=''
@@ -682,11 +614,11 @@ def standings_view():
 def pairings_view():
     return render_template_string(
         SINGLE_PAGE,
-        title='🏆 Chess Tournament - Pairings',
+        title='Pairings',
         styles=Markup(SHARED_STYLES),
         header=Markup(render_header(tournament_data['last_update'])),
         nav=Markup(render_nav('pairings')),
-        section_title=Markup('<i class="fas fa-chess-board"></i> Current Pairings'),
+        section_title=Markup('<i class="fas fa-chess-board"></i> Pairings'),
         content=Markup(render_pairings_table(tournament_data['pairings'], show_filter=True)),
         footer=Markup(render_footer()),
         extra_script=Markup(FILTER_SCRIPT)
