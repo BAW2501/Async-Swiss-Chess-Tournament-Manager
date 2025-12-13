@@ -223,7 +223,16 @@ SHARED_STYLES = """
         line-height: 1.2;
     }
 
-    tbody tr:hover { background-color: #fff9f0; }
+    /* Zebra striping - alternating rows */
+    tbody tr:nth-child(even) {
+        background-color: #f7f3ed; /* Subtle beige matching your theme */
+    }
+
+    /* Hover effect - slightly darker to be visible on both row colors */
+    tbody tr:hover { 
+        background-color: #e8ded4; 
+        transition: background-color 0.1s ease;
+    }
 
     .rank { font-weight: bold; color: #5d4e37; }
     .rank-1 { color: #FFD700; }
