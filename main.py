@@ -1,5 +1,5 @@
 import pandas as pd
-from openpyxl import load_workbook
+import openpyxl
 import random
 from pathlib import Path
 import sys
@@ -131,7 +131,7 @@ def can_pair(p1_state, p2_state, p2_id):
     if p2_id in p1_state["opponents"]:
         return False
     # must have played same number of games
-    if p1_state["games_played"] != p2_state["games_played"]:
+    if p1_state.get("games_played", 0) != p2_state.get("games_played", 0):
         return False
     
     # Color alternation check
@@ -222,7 +222,7 @@ def append_pairings_to_excel(filepath, new_pairings, player_state):
     if not new_pairings:
         return
     
-    wb = load_workbook(filepath)
+    wb = openpyxl.load_workbook(filepath)
     ws = wb["Pairings"]
     
     for pairing in new_pairings:
@@ -271,7 +271,7 @@ def calculate_standings(player_state):
 
 def write_standings_to_excel(filepath, standings):
     """Write standings to Excel."""
-    wb = load_workbook(filepath)
+    wb = openpyxl.load_workbook(filepath)
     
     if "Standings" in wb.sheetnames:
         del wb["Standings"]
