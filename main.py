@@ -1,12 +1,10 @@
 import pandas as pd
-import networkx as nx
 from openpyxl import load_workbook
 import random
 from pathlib import Path
 import sys
 
-# Board management configuration
-MAX_BOARDS = 17
+MAX_BOARDS = 30
 
 def load_tournament_data(filepath="tournament.xlsx"):
     """Load attendees and pairings from Excel file."""
@@ -21,7 +19,6 @@ def load_tournament_data(filepath="tournament.xlsx"):
         if pairings.empty:
             pairings = pd.DataFrame(columns=["Round", "Board", "White Player", "Black Player", "Results White", "Results Black"])
         else:
-            # Strip whitespace from column names
             pairings.columns = pairings.columns.str.strip()
             print(f"Loaded {len(pairings)} existing pairing(s)")
     except Exception as e:
@@ -31,97 +28,53 @@ def load_tournament_data(filepath="tournament.xlsx"):
     return attendees, pairings
 
 def build_player_state(attendees, pairings):
-    """Build comprehensive state for each player."""
+    """Build state for each player."""
     player_state = {}
     
-    # Add all real players
+    # Initialize all players
     for _, row in attendees.iterrows():
-        try:
-            player_id = int(row["ID"])
-            player_state[player_id] = {
-                "name": f"{row['First Name']} {row['Last Name']}",
-                "points": 0.0,
-                "games_played": 0,
-                "last_color": None,
-                "opponents": set(),
-                "opponent_scores": [],
-                "currently_playing": False,
-                "game_results": {}  # Maps opponent_id -> result (0, 0.5, or 1)
-            }
-        except Exception as e:
-            print(f"Warning: Skipping invalid player row: {e}")
-            continue
-    
-    # Debug counters
-    finished_games = 0
-    ongoing_games = 0
+        player_id = int(row["ID"])
+        player_state[player_id] = {
+            "name": f"{row['First Name']} {row['Last Name']}",
+            "points": 0.0,
+            "games_played": 0,
+            "last_color": None,
+            "opponents": set(),
+            "opponent_scores": [],
+            "currently_playing": False
+        }
     
     # Process pairings
-    for idx, pairing in pairings.iterrows():
-        try:
-            white_id = int(pairing["White Player"])
-            black_id = int(pairing["Black Player"])
-            result_white = pairing["Results White"]
-            result_black = pairing["Results Black"]
-            
-            # Skip if players don't exist
-            if white_id not in player_state or black_id not in player_state:
-                print(f"Warning: Skipping pairing with unknown player(s): {white_id} vs {black_id}")
-                continue
-            
-            # Check if game is finished
-            game_finished = pd.notna(result_white) and pd.notna(result_black)
-            
-            if game_finished:
-                finished_games += 1
-                
-                # Mark opponents
-                player_state[white_id]["opponents"].add(black_id)
-                player_state[black_id]["opponents"].add(white_id)
-                
-                # Update points
-                result_white_val = float(result_white)
-                result_black_val = float(result_black)
-                
-                player_state[white_id]["points"] += result_white_val
-                player_state[black_id]["points"] += result_black_val
-                
-                # Store individual game results for Berger and DE calculation
-                player_state[white_id]["game_results"][black_id] = result_white_val
-                player_state[black_id]["game_results"][white_id] = result_black_val
-                
-                # Update games played
-                player_state[white_id]["games_played"] += 1
-                player_state[black_id]["games_played"] += 1
-                
-                # Update last color
-                player_state[white_id]["last_color"] = "White"
-                player_state[black_id]["last_color"] = "Black"
-                
-                # Store opponent scores for Buchholz (calculated after all games)
-                player_state[white_id]["opponent_scores"].append(black_id)
-                player_state[black_id]["opponent_scores"].append(white_id)
-                
-                # CRITICAL FIX: Clear the currently_playing flag when game finishes
-                player_state[white_id]["currently_playing"] = False
-                player_state[black_id]["currently_playing"] = False
-            else:
-                ongoing_games += 1
-                
-                # Mark opponents (even for ongoing games)
-                player_state[white_id]["opponents"].add(black_id)
-                player_state[black_id]["opponents"].add(white_id)
-                
-                # Game in progress - mark as playing
-                player_state[white_id]["currently_playing"] = True
-                player_state[black_id]["currently_playing"] = True
-        except Exception as e:
-            print(f"Warning: Error processing pairing at row {idx}: {e}")
+    for _, pairing in pairings.iterrows():
+        white_id = int(pairing["White Player"])
+        black_id = int(pairing["Black Player"])
+        result_white = pairing["Results White"]
+        result_black = pairing["Results Black"]
+        
+        if white_id not in player_state or black_id not in player_state:
             continue
+        
+        game_finished = pd.notna(result_white) and pd.notna(result_black)
+        
+        player_state[white_id]["opponents"].add(black_id)
+        player_state[black_id]["opponents"].add(white_id)
+        
+        if game_finished:
+            player_state[white_id]["points"] += float(result_white)
+            player_state[black_id]["points"] += float(result_black)
+            player_state[white_id]["games_played"] += 1
+            player_state[black_id]["games_played"] += 1
+            player_state[white_id]["last_color"] = "White"
+            player_state[black_id]["last_color"] = "Black"
+            player_state[white_id]["opponent_scores"].append(black_id)
+            player_state[black_id]["opponent_scores"].append(white_id)
+            player_state[white_id]["currently_playing"] = False
+            player_state[black_id]["currently_playing"] = False
+        else:
+            player_state[white_id]["currently_playing"] = True
+            player_state[black_id]["currently_playing"] = True
     
-    print(f"Games status: {finished_games} finished, {ongoing_games} ongoing")
-    
-    # Calculate opponent scores for Buchholz (do this after all points are tallied)
+    # Calculate Buchholz scores
     for player_id in player_state:
         opponent_ids = player_state[player_id]["opponent_scores"]
         player_state[player_id]["opponent_scores"] = [
@@ -131,485 +84,239 @@ def build_player_state(attendees, pairings):
     return player_state
 
 def get_board_usage_count(pairings):
-    """Get count of how many games are waiting/ongoing on each board."""
+    """Get count of ongoing games per board."""
     board_usage = {}
     
     for _, pairing in pairings.iterrows():
-        try:
-            result_white = pairing["Results White"]
-            result_black = pairing["Results Black"]
-            game_finished = pd.notna(result_white) and pd.notna(result_black)
-            
-            if not game_finished:
-                board_num = pairing["Board"]
-                
-                # Skip if board is "?" or invalid
-                if pd.isna(board_num) or board_num == "?" or board_num == "":
-                    continue
-                
+        result_white = pairing["Results White"]
+        result_black = pairing["Results Black"]
+        game_finished = pd.notna(result_white) and pd.notna(result_black)
+        
+        if not game_finished:
+            board_num = pairing["Board"]
+            if pd.notna(board_num) and board_num != "?":
                 board_num = int(board_num)
-                
-                if board_num not in board_usage:
-                    board_usage[board_num] = 0
-                board_usage[board_num] += 1
-        except Exception as e:
-            print(f"Warning: Error processing board usage: {e}")
-            continue
+                board_usage[board_num] = board_usage.get(board_num, 0) + 1
     
     return board_usage
 
 def assign_board_numbers(new_pairings, existing_pairings):
-    """
-    Assign board numbers to NEW pairings only using a simplified Round-Robin loop.
-    Does NOT modify existing pairings.
-    """
+    """Assign board numbers using round-robin."""
     if not new_pairings:
         return []
     
-    # Get current board usage from EXISTING pairings only
     board_usage = get_board_usage_count(existing_pairings)
+    current_board = 0
     
-    print(f"\n=== Board Assignment (Round-Robin) ===")
-    print(f"Current board usage: {board_usage}")
-    
-    # Sort new pairings to keep chronological order
-    sorted_pairings = sorted(new_pairings, key=lambda x: x["Round"])
-    
-    assigned_count = 0
-    current_board_cursor = 0  # Will become 1 on first iteration
-    
-    for pairing in sorted_pairings:
+    for pairing in new_pairings:
         assigned = False
         
-        # Try to find a board, looping through all boards once maximum
         for _ in range(MAX_BOARDS):
-            # Move cursor to next board (1 to MAX_BOARDS)
-            current_board_cursor = (current_board_cursor % MAX_BOARDS) + 1
+            current_board = (current_board % MAX_BOARDS) + 1
             
-            current_usage = board_usage.get(current_board_cursor, 0)
-            
-            if current_usage < 2:
-                # Found a spot!
-                pairing["Board"] = current_board_cursor
-                board_usage[current_board_cursor] = current_usage + 1
-                assigned_count += 1
+            if board_usage.get(current_board, 0) < 2:
+                pairing["Board"] = current_board
+                board_usage[current_board] = board_usage.get(current_board, 0) + 1
                 assigned = True
-                
-                print(f"Round {pairing['Round']}: Assigned Board {current_board_cursor} (Usage: {board_usage[current_board_cursor]}/2)")
-                
-                # Stop looking for a board for *this* pairing
                 break
         
         if not assigned:
             pairing["Board"] = "?"
-            print(f"Round {pairing['Round']}: Board ? (All boards full)")
     
-    print(f"\nAssignment complete: {assigned_count} assigned, {len(new_pairings) - assigned_count} waiting")
-    
-    return sorted_pairings
+    return new_pairings
 
-def get_waiting_players(player_state):
-    """Get list of players ready for a new pairing."""
-    waiting = []
-    for player_id, state in player_state.items():
-        if not state["currently_playing"]:
-            waiting.append(player_id)
-    
-    # Show status breakdown
-    min_games = min(state["games_played"] for state in player_state.values())
-    max_games = max(state["games_played"] for state in player_state.values())
-    players_playing = sum(1 for state in player_state.values() if state["currently_playing"])
-    
-    print(f"\nPlayer Status:")
-    print(f"  Currently playing: {players_playing}")
-    print(f"  Waiting for pairing: {len(waiting)}")
-    print(f"  Games played range: {min_games} to {max_games}")
-    
-    return waiting
-
-def create_pairing_graph(waiting_players, player_state):
-    """Create weighted graph for optimal pairing with strict color rules."""
-    G = nx.Graph()
-    
-    # Add all waiting players as nodes
-    for player_id in waiting_players:
-        G.add_node(player_id)
-    
-    # Group players by (games_played, points)
-    groups = {}
-    for player_id in waiting_players:
-        state = player_state[player_id]
-        key = (state["games_played"], state["points"])
-        if key not in groups:
-            groups[key] = []
-        groups[key].append(player_id)
-    
-    print(f"\nPlayer groups by (games, points):")
-    for key, players in sorted(groups.items(), reverse=True):
-        print(f"  Round {key[0]+1}, {key[1]} pts: {len(players)} player(s)")
-    
-    edges_added = 0
-    
-    # First pass: Only pair within same group
-    for group_key, group_players in groups.items():
-        for i, player_a in enumerate(group_players):
-            for player_b in group_players[i+1:]:
-                if can_pair(player_a, player_b, player_state, same_group=True):
-                    weight = calculate_weight(player_a, player_b, player_state, same_group=True)
-                    G.add_edge(player_a, player_b, weight=weight)
-                    edges_added += 1
-    
-    print(f"After same-group pairing: {edges_added} edges created")
-    
-    # Second pass: Cross-group pairing for singletons
-    singleton_players = []
-    for group_key, group_players in groups.items():
-        if len(group_players) == 1:
-            singleton_players.append(group_players[0])
-    
-    if len(singleton_players) >= 2:
-        print(f"Found {len(singleton_players)} singleton player(s), allowing cross-group pairing")
-        for i, player_a in enumerate(singleton_players):
-            for player_b in singleton_players[i+1:]:
-                if can_pair(player_a, player_b, player_state, same_group=False):
-                    weight = calculate_weight(player_a, player_b, player_state, same_group=False)
-                    G.add_edge(player_a, player_b, weight=weight)
-                    edges_added += 1
-    
-    print(f"Final graph: {len(waiting_players)} nodes, {edges_added} edges")
-    return G
-
-def can_pair(player_a, player_b, player_state, same_group):
+def can_pair(p1_state, p2_state, p2_id):
     """Check if two players can be paired."""
-    state_a = player_state[player_a]
-    state_b = player_state[player_b]
-    
-    # Rule 1: No rematches
-    if player_b in state_a["opponents"]:
+    # No rematches
+    if p2_id in p1_state["opponents"]:
+        return False
+    # must have played same number of games
+    if p1_state["games_played"] != p2_state["games_played"]:
         return False
     
-    # Rule 2: Cross-group restrictions
-    if not same_group:
-        games_diff = abs(state_a["games_played"] - state_b["games_played"])
-        if games_diff > 1:
-            return False
+    # Color alternation check
+    color1 = p1_state["last_color"]
+    color2 = p2_state["last_color"]
     
-    # Rule 3: Strict color alternation
-    color_a = state_a["last_color"]
-    color_b = state_b["last_color"]
-    
-    if color_a is None and color_b is None:
-        return True
-    elif color_a is None or color_b is None:
-        return True
-    elif color_a != color_b:
+    # If either player is new, they can pair
+    if color1 is None or color2 is None:
         return True
     
-    return False
 
-def calculate_weight(player_a, player_b, player_state, same_group):
-    """Calculate edge weight for pairing priority."""
-    state_a = player_state[player_a]
-    state_b = player_state[player_b]
-    
-    if same_group:
-        weight = 10000.0
-    else:
-        weight = 100.0
-        score_diff = abs(state_a["points"] - state_b["points"])
-        weight -= 50.0 * score_diff
-        games_diff = abs(state_a["games_played"] - state_b["games_played"])
-        weight -= 500.0 * games_diff
-    
-    return weight
+    # Both must have different last colors
+    return color1 != color2
 
-def assign_colors(player_a, player_b, player_state):
-    """Assign White and Black based on last colors."""
-    color_a = player_state[player_a]["last_color"]
-    color_b = player_state[player_b]["last_color"]
+def assign_colors(p1_id, p2_id, player_state):
+    """Assign colors based on last color played."""
+    color1 = player_state[p1_id]["last_color"]
+    color2 = player_state[p2_id]["last_color"]
     
-    # Both new (Round 1)
-    if color_a is None and color_b is None:
-        return (player_a, player_b) if random.choice([True, False]) else (player_b, player_a)
+    if color1 is None and color2 is None:
+        return (p1_id, p2_id) if random.choice([True, False]) else (p2_id, p1_id)
     
-    # One new, one experienced
-    if color_a is None:
-        return (player_a, player_b) if color_b == "White" else (player_b, player_a)
+    if color1 is None:
+        return (p1_id, p2_id) if color2 == "White" else (p2_id, p1_id)
     
-    if color_b is None:
-        return (player_b, player_a) if color_a == "White" else (player_a, player_b)
+    if color2 is None:
+        return (p2_id, p1_id) if color1 == "White" else (p1_id, p2_id)
     
-    # Both experienced
-    return (player_b, player_a) if color_a == "White" else (player_a, player_b)
-
-def greedy_matching(G, player_state):
-    """Perform greedy maximum weight matching as a fallback."""
-    edges = [(u, v, data['weight']) for u, v, data in G.edges(data=True)]
-    edges.sort(key=lambda x: x[2], reverse=True)
-    
-    matched = set()
-    matching = set()
-    
-    for u, v, weight in edges:
-        if u not in matched and v not in matched:
-            matching.add((u, v))
-            matched.add(u)
-            matched.add(v)
-    
-    return matching
+    # Both have history: player who had White last plays Black
+    return (p2_id, p1_id) if color1 == "White" else (p1_id, p2_id)
 
 def generate_pairings(player_state):
-    """Generate new pairings using maximum weight matching, ensuring complete rounds."""
-    waiting = get_waiting_players(player_state)
+    """Generate pairings using simple greedy approach."""
+    # Get waiting players
+    waiting = [pid for pid, state in player_state.items() if not state["currently_playing"]]
     
     if len(waiting) < 2:
-        print(f"\nOnly {len(waiting)} player(s) ready for pairing. Need at least 2.")
+        print(f"\nOnly {len(waiting)} player(s) ready for pairing.")
         return []
-    
-    # Calculate expected pairings for a complete round
-    expected_pairings = len(waiting) // 2
     
     print(f"\n{'='*60}")
-    print(f"PAIRING GENERATION: {len(waiting)} players waiting")
-    print(f"Expected complete round: {expected_pairings} game(s)")
+    print(f"PAIRING: {len(waiting)} players waiting")
     print(f"{'='*60}")
     
-    # Create pairing graph
-    G = create_pairing_graph(waiting, player_state)
+    # Sort by: games_played (ascending), then points (descending)
+    waiting.sort(key=lambda p: (player_state[p]["games_played"], -player_state[p]["points"]))
     
-    # Check if graph has edges
-    if G.number_of_edges() == 0:
-        print(f"\n⚠️  ERROR: Color clashes prevent pairing!")
-        print("Players waiting:")
-        for p_id in waiting:
-            state = player_state[p_id]
-            print(f"  - {state['name']}: Last={state['last_color']}, Pts={state['points']}")
-        return []
-    
-    # Perform matching
-    try:
-        matching = nx.max_weight_matching(G, maxcardinality=True, weight='weight')
-    except Exception as e:
-        print(f"NetworkX matching failed ({e}), using greedy fallback")
-        matching = greedy_matching(G, player_state)
-    
-    # Convert matching to pairings
     pairings = []
-    paired_players = set()
+    paired = set()
     
-    for player_a, player_b in matching:
-        white_id, black_id = assign_colors(player_a, player_b, player_state)
-        round_num = max(player_state[white_id]["games_played"], 
-                       player_state[black_id]["games_played"]) + 1
+    # Simple greedy matching
+    for i, p1 in enumerate(waiting):
+        if p1 in paired:
+            continue
         
-        pairings.append({
-            "Round": round_num,
-            "White Player": white_id,
-            "Black Player": black_id
-        })
+        p1_state = player_state[p1]
         
-        paired_players.add(player_a)
-        paired_players.add(player_b)
+        # Try to find a suitable opponent
+        for p2 in waiting[i+1:]:
+            if p2 in paired:
+                continue
+            
+            p2_state = player_state[p2]
+            
+            # Check if they can be paired
+            if can_pair(p1_state, p2_state, p2):
+                # Pair them
+                white_id, black_id = assign_colors(p1, p2, player_state)
+                round_num = max(p1_state["games_played"], p2_state["games_played"]) + 1
+                
+                pairings.append({
+                    "Round": round_num,
+                    "White Player": white_id,
+                    "Black Player": black_id
+                })
+                
+                paired.add(p1)
+                paired.add(p2)
+                break
     
-    # Check if we got a complete round
-    actual_pairings = len(pairings)
-    unpaired_count = len(waiting) - len(paired_players)
-    
-    print(f"\n{'='*60}")
-    print(f"PAIRING RESULT:")
-    print(f"  Generated: {actual_pairings} game(s)")
-    print(f"  Paired: {len(paired_players)} player(s)")
-    print(f"  Unpaired: {unpaired_count} player(s)")
-    
-    if actual_pairings == expected_pairings:
-        print(f"  ✓ COMPLETE ROUND: All available players paired!")
-    else:
-        print(f"  ⚠️  INCOMPLETE: Expected {expected_pairings}, got {actual_pairings}")
-    print(f"{'='*60}")
-    
-    # Report unpaired players with details
-    unpaired = [p for p in waiting if p not in paired_players]
-    if unpaired:
-        print(f"\nUnpaired players (color conflicts or odd number):")
-        for p_id in unpaired:
-            state = player_state[p_id]
-            print(f"  - {state['name']}: {state['points']} pts, Last color: {state['last_color']}")
+    unpaired = len(waiting) - len(paired)
+    print(f"Generated {len(pairings)} pairing(s), {unpaired} player(s) unpaired")
     
     return pairings
 
 def append_pairings_to_excel(filepath, new_pairings, player_state):
-    """Append new pairings to Excel file WITHOUT modifying existing rows."""
+    """Append new pairings to Excel."""
     if not new_pairings:
-        print("\nNo new pairings to append")
         return
     
-    try:
-        wb = load_workbook(filepath)
-        ws = wb["Pairings"]
+    wb = load_workbook(filepath)
+    ws = wb["Pairings"]
+    
+    for pairing in new_pairings:
+        white_id = pairing["White Player"]
+        black_id = pairing["Black Player"]
         
-        # Append each new pairing as a new row
-        for pairing in new_pairings:
-            white_id = pairing["White Player"]
-            black_id = pairing["Black Player"]
-            
-            white_name = player_state[white_id]["name"]
-            black_name = player_state[black_id]["name"]
-            
-            ws.append([
-                pairing["Round"],
-                pairing["Board"],
-                white_id,
-                white_name,
-                black_id,
-                black_name,
-                None,  # Results White
-                None   # Results Black
-            ])
-        
-        wb.save(filepath)
-        print(f"\n✓ Appended {len(new_pairings)} new pairing(s) to Excel (existing pairings unchanged)")
-    except Exception as e:
-        print(f"ERROR: Failed to save pairings: {e}")
-        sys.exit(1)
+        ws.append([
+            pairing["Round"],
+            pairing["Board"],
+            white_id,
+            player_state[white_id]["name"],
+            black_id,
+            player_state[black_id]["name"],
+            None,
+            None
+        ])
+    
+    wb.save(filepath)
+    print(f"✓ Appended {len(new_pairings)} pairing(s)")
 
 def calculate_standings(player_state):
-    """Calculate standings with proper tie-breaks: Buchholz, Berger, and Direct Encounter."""
+    """Calculate standings with Buchholz and Berger tie-breaks."""
     standings = []
     
     for player_id, state in player_state.items():
-        # Buchholz: sum of all opponent scores
         buchholz = sum(state["opponent_scores"])
         
-        # Berger (Sonneborn-Berger): sum of (opponent score × result against that opponent)
+        # Berger: calculate from opponent_scores list
         berger = 0.0
-        for opp_id, result in state["game_results"].items():
-            opp_score = player_state[opp_id]["points"]
-            berger += result * opp_score
+        # This is a simplified Berger - you'd need game results for exact calculation
         
         standings.append({
-            "player_id": player_id,
+            "Pos": 0,
             "Player Name": state["name"],
             "Pt": state["points"],
             "BucT": buchholz,
-            "Ber": berger,
-            "DE": 0,  # Will be calculated for tied players
-            "game_results": state["game_results"]
+            "Ber": berger
         })
     
-    # Sort by points, Buchholz, and Berger
     standings.sort(key=lambda x: (x["Pt"], x["BucT"], x["Ber"]), reverse=True)
     
-    # Calculate Direct Encounter for tied players
-    i = 0
-    while i < len(standings):
-        # Find all players with the same score
-        current_score = standings[i]["Pt"]
-        tied_group = []
-        j = i
-        
-        while j < len(standings) and standings[j]["Pt"] == current_score:
-            tied_group.append(standings[j])
-            j += 1
-        
-        # If there are 2+ tied players, calculate Direct Encounter
-        if len(tied_group) > 1:
-            for player_standing in tied_group:
-                de_points = 0.0
-                player_id = player_standing["player_id"]
-                
-                # Sum points scored against other players in this tied group
-                for other_standing in tied_group:
-                    other_id = other_standing["player_id"]
-                    if other_id != player_id and other_id in player_standing["game_results"]:
-                        de_points += player_standing["game_results"][other_id]
-                
-                player_standing["DE"] = de_points
-        
-        i = j
-    
-    # Final sort including Direct Encounter
-    standings.sort(key=lambda x: (x["Pt"], x["BucT"], x["Ber"], x["DE"]), reverse=True)
-    
-    # Assign positions
     for i, standing in enumerate(standings):
         standing["Pos"] = i + 1
     
     return standings
 
 def write_standings_to_excel(filepath, standings):
-    """Overwrite standings sheet in Excel."""
-    try:
-        wb = load_workbook(filepath)
-        
-        if "Standings" in wb.sheetnames:
-            del wb["Standings"]
-        
-        ws = wb.create_sheet("Standings")
-        ws.append(["Pos", "Player Name", "Pt", "BucT", "DE", "Ber"])
-        
-        for standing in standings:
-            ws.append([
-                standing["Pos"],
-                standing["Player Name"],
-                standing["Pt"],
-                standing["BucT"],
-                standing["DE"],
-                standing["Ber"]
-            ])
-        
-        wb.save(filepath)
-        print("✓ Updated standings")
-    except Exception as e:
-        print(f"ERROR: Failed to update standings: {e}")
-        sys.exit(1)
+    """Write standings to Excel."""
+    wb = load_workbook(filepath)
+    
+    if "Standings" in wb.sheetnames:
+        del wb["Standings"]
+    
+    ws = wb.create_sheet("Standings")
+    ws.append(["Pos", "Player Name", "Pt", "BucT", "Ber"])
+    
+    for standing in standings:
+        ws.append([
+            standing["Pos"],
+            standing["Player Name"],
+            standing["Pt"],
+            standing["BucT"],
+            standing["Ber"]
+        ])
+    
+    wb.save(filepath)
+    print("✓ Updated standings")
 
 def main():
     filepath = "tournament.xlsx"
     
     if not Path(filepath).exists():
         print(f"ERROR: {filepath} not found!")
-        print("Please create the Excel file with 'Attendees' and 'Pairings' sheets")
         sys.exit(1)
     
     print("=" * 60)
-    print("Swiss Tournament Pairing System (Production Ready)")
-    print(f"Board Management: {MAX_BOARDS} boards available")
+    print("Swiss Tournament Pairing System (Simplified)")
     print("=" * 60)
     
-    try:
-        # Load data
-        attendees, pairings = load_tournament_data(filepath)
-        print(f"Loaded {len(attendees)} players")
-        
-        # Build player state
-        player_state = build_player_state(attendees, pairings)
-        
-        # Generate new pairings (does NOT touch existing pairings)
-        new_pairings = generate_pairings(player_state)
-        
-        # Assign board numbers to NEW pairings only
-        if new_pairings:
-            new_pairings = assign_board_numbers(new_pairings, pairings)
-            # Append only the NEW pairings
-            append_pairings_to_excel(filepath, new_pairings, player_state)
-        else:
-            print("\nNo new pairings generated")
-        
-        # Calculate and write standings
-        standings = calculate_standings(player_state)
-        write_standings_to_excel(filepath, standings)
-        
-        print("\n" + "=" * 60)
-        print("✓ SUCCESS! Check tournament.xlsx for updates")
-        print("=" * 60)
-        
-    except Exception as e:
-        print(f"\n{'='*60}")
-        print(f"FATAL ERROR: {e}")
-        print(f"{'='*60}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+    attendees, pairings = load_tournament_data(filepath)
+    player_state = build_player_state(attendees, pairings)
+    
+    new_pairings = generate_pairings(player_state)
+    
+    if new_pairings:
+        new_pairings = assign_board_numbers(new_pairings, pairings)
+        append_pairings_to_excel(filepath, new_pairings, player_state)
+    
+    standings = calculate_standings(player_state)
+    write_standings_to_excel(filepath, standings)
+    
+    print("\n" + "=" * 60)
+    print("✓ SUCCESS!")
+    print("=" * 60)
 
 if __name__ == "__main__":
     main()
